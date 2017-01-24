@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+## Configures and calls coqproject.sh (https://github.com/dwoos/coqproject)
+
+## Configuration options for coqproject.sh
+DEPS=(Verdi)
+DIRS=(extraction/lockserv/coq)
+CANARIES=("Verdi.Verdi" "Build Verdi before building Verdi Aggregation")
+Verdi_DIRS=(core lib systems extraction)
+source script/coqproject.sh
