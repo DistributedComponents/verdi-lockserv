@@ -1,5 +1,6 @@
 Require Import Verdi.Verdi.
-Require Import Verdi.LockServ.
+
+Require Import LockServ.
 
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlNatInt.

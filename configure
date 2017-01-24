@@ -4,7 +4,7 @@
 
 ## Configuration options for coqproject.sh
 DEPS=(Verdi)
-DIRS=(extraction/lockserv/coq)
+DIRS=(systems extraction/lockserv/coq)
 CANARIES=("Verdi.Verdi" "Build Verdi before building Verdi Aggregation")
 Verdi_DIRS=(core lib systems extraction)
 source script/coqproject.sh
