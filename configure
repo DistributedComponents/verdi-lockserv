@@ -3,8 +3,8 @@
 ## Configures and calls coqproject.sh (https://github.com/dwoos/coqproject)
 
 ## Configuration options for coqproject.sh
-DEPS=(Verdi)
+DEPS=(Verdi StructTact)
 DIRS=(systems extraction/lockserv/coq)
-CANARIES=("Verdi.Verdi" "Build Verdi before building Verdi Aggregation")
+CANARIES=("Verdi.Verdi" "Build Verdi before building Verdi LockServ" "StructTact.StructTactics" "Build StructTact before building Verdi LockServ")
 Verdi_DIRS=(core lib systems extraction)
 source script/coqproject.sh
