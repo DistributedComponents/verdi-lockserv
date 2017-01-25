@@ -24,7 +24,7 @@ LOCKSERV_MLFILES = extraction/lockserv/ocaml/LockServ.ml extraction/lockserv/oca
 Makefile.coq: _CoqProject
 	coq_makefile -f _CoqProject -o Makefile.coq -no-install \
           -extra '$(LOCKSERV_MLFILES)' \
-	    'extraction/lockserv/coq/ExtractLockServ.v' \
+	    'extraction/lockserv/coq/ExtractLockServ.v systems/LockServ.vo' \
 	    '$$(COQC) $$(COQDEBUG) $$(COQFLAGS) extraction/lockserv/coq/ExtractLockServ.v' \
           -extra-phony 'distclean' 'clean' \
 	    'rm -f $$(join $$(dir $$(VFILES)),$$(addprefix .,$$(notdir $$(patsubst %.v,%.aux,$$(VFILES)))))'
