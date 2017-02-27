@@ -18,6 +18,7 @@ endif
 
 default: Makefile.coq
 	$(MAKE) -f Makefile.coq
+	+$(MAKE) -C extraction/lockserv
 
 LOCKSERV_MLFILES = extraction/lockserv/ocaml/LockServ.ml extraction/lockserv/ocaml/LockServ.mli
 

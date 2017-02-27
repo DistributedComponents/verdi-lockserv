@@ -24,21 +24,19 @@ Section LockServ.
     decide equality. apply fin_eq_dec.
   Qed.
 
-
-
   Inductive Msg :=
-  | Lock   : Msg
+  | Lock   : nat -> Msg
   | Unlock : Msg
-  | Locked : Msg.
+  | Locked : nat -> Msg.
 
   Definition Msg_eq_dec : forall a b : Msg, {a = b} + {a <> b}.
-    decide equality.
+    decide equality; auto using Nat.eq_dec.
   Qed.
     
   Definition Input := Msg.
   Definition Output := Msg.
 
-  Record Data := mkData { queue : list Client_index ; held : bool }.
+  Record Data := mkData { queue : list (Client_index * nat) ; held : bool }.
 
   Definition init_data (n : Name) : Data := mkData [] false.
 
@@ -46,13 +44,13 @@ Section LockServ.
 
   Definition ClientNetHandler (i : Client_index) (m : Msg) : Handler Data :=
     match m with
-      | Locked => (put (mkData [] true)) >> write_output Locked
+      | Locked id => (put (mkData [] true)) >> write_output (Locked id)
       | _ => nop
     end.
 
   Definition ClientIOHandler (i : Client_index) (m : Msg) : Handler Data :=
     match m with
-      | Lock => send (Server, Lock)
+      | Lock id => send (Server, Lock id)
       | Unlock => data <- get ;;
                   when (held data) (put (mkData [] false) >> send (Server, Unlock))
       | _ => nop
@@ -62,14 +60,14 @@ Section LockServ.
     st <- get ;;
     let q := queue st in
     match m with
-      | Lock =>
+      | Lock id =>
         match src with
           | Server => nop
           | Client c =>
-            when (null q) (send (src, Locked)) >> put (mkData (q++[c]) (held st))
+            when (null q) (send (src, Locked id)) >> put (mkData (q ++ [(c, id)]) (held st))
         end
       | Unlock => match q with
-                    | _ :: x :: xs => put (mkData (x :: xs) (held st)) >> send (Client x, Locked)
+                    | _ :: (c, id) :: xs => put (mkData ((c, id) :: xs) (held st)) >> send (Client c, Locked id)
                     | _ => put (mkData [] (held st))
                   end
       | _ => nop
@@ -97,8 +95,6 @@ Section LockServ.
                                  ClientIOHandler,
                                  ServerIOHandler in *).
 
-
-
   Definition Nodes := Server :: list_Clients.
 
   Theorem In_n_Nodes :
@@ -125,8 +121,6 @@ Section LockServ.
       + intros. congruence.
       + apply all_fin_NoDup.
   Qed.
-
-
 
   Global Instance LockServ_BaseParams : BaseParams :=
     {
@@ -167,8 +161,8 @@ Section LockServ.
   Definition locks_correct (sigma : name -> data) : Prop :=
     forall n,
       held (sigma (Client n)) = true ->
-      exists t,
-        queue (sigma Server) = n :: t.
+      exists id t,
+        queue (sigma Server) = (n, id) :: t.
 
   (* We first show that this actually implies mutual exclusion. *)
   Lemma locks_correct_implies_mutex :
@@ -186,7 +180,7 @@ Section LockServ.
 
   Definition valid_unlock q h c p :=
     pSrc p = Client c /\
-    (exists t, q = c :: t) /\
+    (exists (id : nat) t, q = (c, id) :: t) /\
     h = false.
 
   Definition locks_correct_unlock (sigma : name -> data) (p : packet) : Prop :=
@@ -195,13 +189,12 @@ Section LockServ.
 
   Definition valid_locked q h c p :=
       pDst p = Client c /\
-      (exists t, q = c :: t) /\
+      (exists (id : nat) t, q = (c, id) :: t) /\
       h = false.
 
   Definition locks_correct_locked (sigma : name -> data) (p : packet) : Prop :=
-    pBody p = Locked ->
+    forall id, pBody p = Locked id ->
     exists c, valid_locked (queue (sigma Server)) (held (sigma (Client c))) c p.
-
 
   Definition LockServ_network_invariant (sigma : name -> data) (p : packet) : Prop :=
     locks_correct_unlock sigma p /\
@@ -209,9 +202,9 @@ Section LockServ.
 
   Definition LockServ_network_network_invariant (p q : packet) : Prop :=
     (pBody p = Unlock -> pBody q = Unlock -> False) /\
-    (pBody p = Locked -> pBody q = Unlock -> False) /\
-    (pBody p = Unlock -> pBody q = Locked -> False) /\
-    (pBody p = Locked -> pBody q = Locked -> False).
+    (forall id, pBody p = Locked id -> pBody q = Unlock -> False) /\
+    (forall id, pBody p = Unlock -> pBody q = Locked id -> False) /\
+    (forall id id', pBody p = Locked id -> pBody q = Locked id' -> False).
 
   Lemma nwnw_sym :
     forall p q,
@@ -219,7 +212,7 @@ Section LockServ.
       LockServ_network_network_invariant q p.
   Proof using.
     unfold LockServ_network_network_invariant.
-    intuition.
+    intuition eauto.
   Qed.
 
   Lemma locks_correct_init :
@@ -232,7 +225,7 @@ Section LockServ.
     forall h i st u out st' ms,
       InputHandler h i st = (u, out, st', ms) ->
       (exists c, h = Client c /\
-                 ((i = Lock /\ out = [] /\ st' = st /\ ms = [(Server, Lock)]) \/
+                 ((exists id, i = Lock id /\ out = [] /\ st' = st /\ ms = [(Server, Lock id)]) \/
                   (i = Unlock /\ out = [] /\ held st' = false /\
                    ((held st = true /\ ms = [(Server, Unlock)]) \/
                     (st' = st /\ ms = []))))) \/
@@ -242,7 +235,7 @@ Section LockServ.
     intros.
     repeat break_match; repeat tuple_inversion;
       subst; simpl in *; subst; simpl in *.
-    - left. eexists. intuition.
+    - left. eexists. intuition eauto.
     - left. eexists. intuition.
     - left. eexists. intuition.
     - auto.
@@ -279,8 +272,17 @@ Section LockServ.
       locks_correct sigma ->
       locks_correct (update name_eq_dec sigma h st').
   Proof using.
-    set_up_input_handlers;
-    auto using locks_correct_update_false.
+    set_up_input_handlers; break_exists; repeat break_and;
+    eauto using locks_correct_update_false.
+    subst.
+    unfold locks_correct in *.
+    intuition.
+    find_rewrite_lem update_nop_ext.
+    pose proof (H0 n H).
+    break_exists.
+    exists x1, x2.
+    rewrite update_nop_ext.
+    assumption.
   Qed.
 
   Lemma ClientNetHandler_cases :
@@ -288,11 +290,11 @@ Section LockServ.
       ClientNetHandler c m st = (u, out, st', ms) ->
       ms = [] /\
       ((st' = st /\ out = [] ) \/
-       (m = Locked /\ out = [Locked] /\ held st' = true)).
+       (exists id, m = Locked id /\ out = [Locked id] /\ held st' = true)).
   Proof using.
     handler_unfold.
     intros.
-    repeat break_match; repeat tuple_inversion; subst; auto.
+    repeat break_match; repeat tuple_inversion; subst; intuition eauto.
   Qed.
 
   Lemma ServerNetHandler_cases :
@@ -300,23 +302,23 @@ Section LockServ.
       ServerNetHandler src m st = (u, out, st', ms) ->
       out = [] /\
       ((exists c, src = Client c /\
-                  (m = Lock /\
-                  queue st' = queue st ++ [c] /\
-                  ((queue st = [] /\ ms = [(Client c, Locked)]) \/
-                   (queue st <> [] /\ ms = [])))) \/
+             (exists id, m = Lock id /\ queue st' = queue st ++ [(c, id)] /\
+              ((exists id, queue st = [] /\ ms = [(Client c, Locked id)]) \/
+               (queue st <> [] /\ ms = [])))) \/
        ((m = Unlock /\
                    queue st' = tail (queue st) /\
                    ((queue st' = [] /\ ms = []) \/
-                    (exists next t, queue st' = next :: t /\ ms = [(Client next, Locked)])))) \/
+                    (exists c' id t, queue st' = (c', id) :: t /\ ms = [(Client c', Locked id)])))) \/
        ms = [] /\ st' = st).
   Proof using.
     handler_unfold.
     intros.
     repeat break_match; repeat tuple_inversion; subst.
     - find_apply_lem_hyp null_sound. find_rewrite. simpl.
-      intuition. left. eexists. intuition.
+      intuition. left. eexists. intuition. eexists. intuition.
+      left. eexists. intuition.
     - simpl. find_apply_lem_hyp null_false_neq_nil.
-      intuition. left. eexists. intuition.
+      intuition. left. eexists. intuition. eexists. intuition.
     - simpl. auto.
     - simpl. destruct st; simpl in *; subst; auto.
     - simpl in *. intuition.
@@ -324,11 +326,11 @@ Section LockServ.
     - simpl. intuition.
   Qed.
 
-  Definition at_head_of_queue sigma c := (exists t, queue (sigma Server) = c :: t).
+  Definition at_head_of_queue sigma c := (exists id t, queue (sigma Server) = (c, id) :: t).
 
   Lemma at_head_of_queue_intro :
-    forall sigma c t,
-      queue (sigma Server) = c :: t ->
+    forall sigma c id t,
+      queue (sigma Server) = (c, id) :: t ->
       at_head_of_queue sigma c.
   Proof using.
     unfold at_head_of_queue.
@@ -348,15 +350,16 @@ Section LockServ.
   Qed.
 
   Lemma locks_correct_locked_at_head :
-    forall sigma p c,
+    forall sigma p c id,
       pDst p = Client c ->
-      pBody p = Locked ->
+      pBody p = Locked id ->
       locks_correct_locked sigma p ->
       at_head_of_queue sigma c.
   Proof using.
     unfold locks_correct_locked.
     firstorder.
-    repeat find_rewrite. find_inversion.
+    repeat find_rewrite. pose proof (H1 id). concludes. break_exists. unfold valid_locked in *. break_and. break_exists.
+    find_rewrite. find_injection.
     eauto using at_head_of_queue_intro.
   Qed.
 
@@ -468,7 +471,7 @@ Section LockServ.
       locks_correct_locked sigma p ->
       locks_correct (update name_eq_dec sigma (pDst p) st').
   Proof using.
-    set_up_net_handlers;
+    set_up_net_handlers; break_exists; break_and;
     eauto using
           locks_correct_update_true, locks_correct_locked_at_head,
           all_clients_false_locks_correct_server_update, empty_queue_all_clients_false,
@@ -477,8 +480,8 @@ Section LockServ.
   Qed.
 
   Lemma locks_correct_unlock_sent_lock :
-    forall sigma p,
-      pBody p = Lock ->
+    forall sigma p id,
+      pBody p = Lock id ->
       locks_correct_unlock sigma p.
   Proof using.
     unfold locks_correct_unlock.
@@ -486,8 +489,8 @@ Section LockServ.
   Qed.
 
   Lemma locks_correct_unlock_sent_locked :
-    forall sigma p,
-      pBody p = Locked ->
+    forall sigma p id,
+      pBody p = Locked id ->
       locks_correct_unlock sigma p.
   Proof using.
     unfold locks_correct_unlock.
@@ -501,31 +504,39 @@ Section LockServ.
       locks_correct_unlock sigma p ->
       locks_correct_unlock (update name_eq_dec sigma h st') p.
   Proof using.
-    set_up_input_handlers.
+    set_up_input_handlers; break_exists; break_and; subst; try rewrite update_nop_ext; auto.
     destruct (pBody p) eqn:?.
-    - auto using locks_correct_unlock_sent_lock.
+    - eauto using locks_correct_unlock_sent_lock.
     - now erewrite unlock_in_flight_all_clients_false in * by eauto.
-    - auto using locks_correct_unlock_sent_locked.
+    - eauto using locks_correct_unlock_sent_locked.
   Qed.
 
   Lemma locked_in_flight_all_clients_false :
-    forall sigma p,
-      pBody p = Locked ->
+    forall sigma p id,
+      pBody p = Locked id ->
       locks_correct_locked sigma p ->
       locks_correct sigma ->
       (forall c, held (sigma (Client c)) = false).
   Proof using.
     intros.
     destruct (held (sigma (Client c))) eqn:?; auto.
-    firstorder.
     find_copy_apply_lem_hyp locks_correct_true_at_head_of_queue; auto.
     unfold at_head_of_queue in *. break_exists.
+    unfold locks_correct_locked in *.
+    pose proof (H0 id).
+    concludes.
+    break_exists.
+    unfold valid_locked in H3.
+    break_and.
+    break_exists.
+    find_rewrite.
+    find_injection.
     congruence.
   Qed.
 
   Lemma locks_correct_locked_sent_lock :
-    forall sigma p,
-      pBody p = Lock ->
+    forall sigma p id,
+      pBody p = Lock id ->
       locks_correct_locked sigma p.
   Proof using.
     unfold locks_correct_locked.
@@ -548,10 +559,10 @@ Section LockServ.
       locks_correct_locked sigma p ->
       locks_correct_locked (update name_eq_dec sigma h st') p.
   Proof using.
-    set_up_input_handlers.
+    set_up_input_handlers; break_exists; break_and; subst; try rewrite update_nop_ext; auto.
     destruct (pBody p) eqn:?.
-    - auto using locks_correct_locked_sent_lock.
-    - auto using locks_correct_locked_sent_unlock.
+    - eauto using locks_correct_locked_sent_lock.
+    - eauto using locks_correct_locked_sent_unlock.
     - now erewrite locked_in_flight_all_clients_false in * by eauto.
   Qed.
 
@@ -576,12 +587,23 @@ Section LockServ.
       pSrc p = h ->
       locks_correct_unlock (update name_eq_dec sigma h st') p.
   Proof using.
-    set_up_input_handlers;
+    set_up_input_handlers; break_exists; break_and; subst; try rewrite update_nop_ext;
 
-    auto using locks_correct_unlock_sent_lock,
+    eauto using locks_correct_unlock_sent_lock,
                locks_correct_unlock_true_to_false,
                locks_correct_true_at_head_of_queue.
-  Qed.
+   unfold locks_correct_unlock.
+   intro.
+   exists x.
+   unfold valid_unlock.
+   split; auto.
+   simpl in *.
+   break_or_hyp; intuition.
+   - find_injection.
+     congruence.
+   - find_injection.
+     congruence.
+   Qed.
 
   Lemma locks_correct_locked_input_handlers_new :
     forall h i sigma u st' out ms p,
@@ -589,30 +611,42 @@ Section LockServ.
       In (pDst p, pBody p) ms ->
       locks_correct_locked (update name_eq_dec sigma h st') p.
   Proof using.
-    set_up_input_handlers;
-    auto using locks_correct_locked_sent_lock, locks_correct_locked_sent_unlock.
+    set_up_input_handlers; break_exists; break_and; subst; try rewrite update_nop_ext; auto.
+    - simpl in *.
+      intuition.
+      find_injection.
+      congruence.
+    - eauto using locks_correct_locked_sent_lock, locks_correct_locked_sent_unlock.
   Qed.
 
   Lemma nwnw_locked_lock :
-    forall p q,
+    forall p q id,
       LockServ_network_network_invariant p q ->
-      pBody p = Locked ->
-      pBody q = Lock.
+      pBody p = Locked id ->
+      exists id', pBody q = Lock id'.
   Proof using.
     unfold LockServ_network_network_invariant.
     intros.
     destruct (pBody q); intuition; try discriminate.
+    - exists n; auto.
+    - pose proof (H _ H0).
+      intuition.
+    - pose proof (H4 _ n H0).
+      congruence.
   Qed.
 
   Lemma nwnw_unlock_lock :
     forall p q,
       LockServ_network_network_invariant p q ->
       pBody p = Unlock ->
-      pBody q = Lock.
+      exists id, pBody q = Lock id.
   Proof using.
     unfold LockServ_network_network_invariant.
     intros.
     destruct (pBody q); intuition; try discriminate.
+    - exists n; auto.
+    - pose proof (H2 n H0).
+      congruence.
   Qed.
 
   Lemma locks_correct_unlock_at_head :
@@ -666,10 +700,30 @@ Section LockServ.
       LockServ_network_network_invariant p q ->
       locks_correct_unlock (update name_eq_dec sigma (pDst p) st') q.
   Proof using.
-    set_up_net_handlers;
-    eauto using locks_correct_unlock_sent_lock, nwnw_locked_lock,
+    set_up_net_handlers; break_exists; break_and; subst; eauto using locks_correct_unlock_sent_lock, nwnw_locked_lock,
                 locks_correct_unlock_at_head_preserved, snoc_at_head_of_queue_preserved,
                 nwnw_unlock_lock, nil_at_head_of_queue_preserved.
+    - unfold locks_correct_unlock in *.
+      intros.
+      concludes.
+      break_exists.
+      pose proof (nwnw_locked_lock H2 H).
+      break_exists.
+      congruence.
+    - unfold locks_correct_unlock in *.
+      intros.
+      concludes.
+      break_exists.
+      pose proof (nwnw_unlock_lock H2 H).
+      break_exists.
+      congruence.
+    - unfold locks_correct_unlock in *.
+      intros.
+      concludes.
+      break_exists.
+      pose proof (nwnw_unlock_lock H2 H).
+      break_exists.
+      congruence.
   Qed.
 
   Lemma locks_correct_locked_at_head_preserved :
@@ -680,6 +734,9 @@ Section LockServ.
   Proof using.
     unfold locks_correct_locked, valid_locked.
     intuition.
+    pose proof (H id H1).
+    break_exists.
+    break_and.
     break_exists.
     exists x.
     intuition.
@@ -695,10 +752,31 @@ Section LockServ.
       LockServ_network_network_invariant p q ->
       locks_correct_locked (update name_eq_dec sigma (pDst p) st') q.
   Proof using.
-    set_up_net_handlers;
+    set_up_net_handlers; break_exists; break_and; subst;
     eauto using locks_correct_locked_sent_lock, nwnw_locked_lock,
       locks_correct_locked_at_head_preserved, snoc_at_head_of_queue_preserved,
       nwnw_unlock_lock, nil_at_head_of_queue_preserved.
+    - unfold locks_correct_locked in *.
+      intros.
+      pose proof (H1 _ H3).
+      break_exists.
+      pose proof (nwnw_locked_lock H2 H).
+      break_exists.
+      congruence.
+   -  unfold locks_correct_locked in *.
+      intros.
+      pose proof (H1 id H3).
+      break_exists.
+      pose proof (nwnw_unlock_lock H2 H).
+      break_exists.
+      congruence.
+    - unfold locks_correct_locked in *.
+      intros.
+      pose proof (H1 id H3).
+      break_exists.
+      pose proof (nwnw_unlock_lock H2 H).
+      break_exists.
+      congruence.
   Qed.
 
   Lemma locks_correct_unlock_net_handlers_new :
@@ -708,22 +786,21 @@ Section LockServ.
       In (pDst q, pBody q) ms ->
       locks_correct_unlock (update name_eq_dec sigma (pDst p) st') q.
   Proof using.
-    set_up_net_handlers;
-    auto using locks_correct_unlock_sent_locked.
+    set_up_net_handlers; break_exists; break_and; subst; intuition; break_exists; break_and; subst; simpl in *; intuition; try find_injection; try congruence.
   Qed.
 
   Lemma locks_correct_locked_intro :
-    forall sigma p c t st',
+    forall sigma p c id t st',
       pDst p = Client c ->
       held (sigma (Client c)) = false ->
-      queue st' = c :: t ->
+      queue st' = (c, id) :: t ->
       locks_correct_locked (update name_eq_dec sigma Server st') p.
   Proof using.
     unfold locks_correct_locked, valid_locked.
     intros.
     exists c.
     intuition.
-    - exists t. now rewrite_update.
+    - exists id, t. now rewrite_update.
     - now rewrite_update.
   Qed.
 
@@ -735,15 +812,24 @@ Section LockServ.
       In (pDst q, pBody q) ms ->
       locks_correct_locked (update name_eq_dec sigma (pDst p) st') q.
   Proof using.
-    set_up_net_handlers;
-    eauto using locks_correct_locked_intro,
-                empty_queue_all_clients_false,
-                unlock_in_flight_all_clients_false.
+    set_up_net_handlers; break_exists; break_and; intuition; break_exists; break_and; subst; simpl in *; intuition; try find_injection; try congruence.
+    - eapply locks_correct_locked_intro; eauto.
+      eauto using locks_correct_locked_intro,
+        empty_queue_all_clients_false,
+        unlock_in_flight_all_clients_false.
+      rewrite H3.
+      rewrite H5.
+      simpl.
+      eauto.
+    - eapply locks_correct_locked_intro; eauto.
+      eauto using locks_correct_locked_intro,
+        empty_queue_all_clients_false,
+        unlock_in_flight_all_clients_false.
   Qed.
 
   Lemma nwnw_lock :
-    forall p p',
-      pBody p = Lock ->
+    forall p p' id,
+      pBody p = Lock id ->
       LockServ_network_network_invariant p p'.
   Proof using.
     unfold LockServ_network_network_invariant.
@@ -761,9 +847,13 @@ Section LockServ.
   Proof using.
     unfold LockServ_network_invariant.
     set_up_input_handlers.
-    - auto using nwnw_sym, nwnw_lock.
+    - break_exists; break_and; subst.
+      simpl in *.
+      intuition.
+      find_injection.
+      eauto using nwnw_sym, nwnw_lock.
     - destruct (pBody p) eqn:?.
-      + auto using nwnw_lock.
+      + eauto using nwnw_lock.
       + now erewrite unlock_in_flight_all_clients_false in * by eauto.
       + now erewrite locked_in_flight_all_clients_false in * by eauto.
   Qed.
@@ -774,21 +864,25 @@ Section LockServ.
       distinct_pairs_and LockServ_network_network_invariant
                          (map (fun m => mkPacket h (fst m) (snd m)) ms).
   Proof using.
-    set_up_input_handlers.
+    set_up_input_handlers; break_exists; break_and; subst; simpl; split; intuition.
   Qed.
 
   Lemma nw_empty_queue_lock :
     forall sigma p,
       LockServ_network_invariant sigma p ->
       queue (sigma Server) = [] ->
-      pBody p = Lock.
+      exists i, pBody p = Lock i.
   Proof using.
     unfold LockServ_network_invariant,
     locks_correct_unlock, locks_correct_locked,
     valid_unlock, valid_locked.
     intuition.
     destruct (pBody p) eqn:?; intuition; break_exists; intuition; break_exists;
-    congruence.
+    try congruence.
+    - exists n; auto.
+    - pose proof (H2 n (eq_refl _)).
+      break_exists; break_and; break_exists.
+      congruence.
   Qed.
 
   Lemma LockServ_nwnw_net_handlers_old_new :
@@ -801,9 +895,18 @@ Section LockServ.
       In (pDst p', pBody p') ms ->
       LockServ_network_network_invariant p' q.
   Proof using.
-    set_up_net_handlers;
-    eauto using nwnw_sym, nwnw_lock, nw_empty_queue_lock, nwnw_unlock_lock.
-  Qed.
+    set_up_net_handlers; break_exists; break_and; subst; intuition; break_exists; break_and; subst; simpl in *; intuition; try find_injection.
+    - pose proof (nw_empty_queue_lock H2 H7).
+      break_exists.
+      pose proof (nwnw_lock _ p' H9).
+      apply nwnw_sym.
+      assumption.
+    - pose proof (nwnw_unlock_lock H3 H).
+      break_exists.
+      pose proof (nwnw_lock _ p' H4).
+      apply nwnw_sym.
+      assumption.
+    Qed.
 
   Lemma LockServ_nwnw_net_handlers_new_new :
     forall p sigma u st' out ms,
@@ -813,7 +916,7 @@ Section LockServ.
       distinct_pairs_and LockServ_network_network_invariant
                          (map (fun m => mkPacket (pDst p) (fst m) (snd m)) ms).
   Proof using.
-    set_up_net_handlers.
+    set_up_net_handlers; break_exists; break_and; intuition; break_exists; break_and; subst; simpl; intuition.
   Qed.
 
   Instance LockServ_Decompositition : Decomposition _ LockServ_MultiParams.
@@ -868,7 +971,7 @@ Section LockServ.
                                                       else last_holder' holder tr
                                         end
 
-      | (Client n, inr [Locked]) :: tr => last_holder' (Some n) tr
+      | (Client n, inr [Locked id]) :: tr => last_holder' (Some n) tr
       | (n, _) :: tr => last_holder' holder tr
     end.
 
@@ -882,7 +985,7 @@ Section LockServ.
                                              | _ => trace_mutual_exclusion' holder tr'
                                            end
       | (n, (inl _)) :: tr' => trace_mutual_exclusion' holder tr'
-      | (Client n, (inr [Locked])) :: tr' => match holder with
+      | (Client n, (inr [Locked id])) :: tr' => match holder with
                                                | None => trace_mutual_exclusion' (Some n) tr'
                                                | Some _ => False
                                              end
@@ -957,14 +1060,14 @@ Section LockServ.
   Qed.
 
   Lemma trace_mutex'_locked_extend :
-    forall tr h n,
+    forall tr h n id,
       trace_mutual_exclusion' h tr ->
       last_holder' h tr = None ->
-      trace_mutual_exclusion' h (tr ++ [(Client n, inr [Locked])]).
+      trace_mutual_exclusion' h (tr ++ [(Client n, inr [Locked id])]).
   Proof using.
     induction tr; intros; simpl in *.
-    - subst. auto.
-    - simpl in *. repeat break_match; subst; intuition.
+    - subst; auto.
+    - simpl in *; repeat break_match; subst; intuition.
   Qed.
 
   Lemma reachable_intro :
@@ -1010,8 +1113,8 @@ Section LockServ.
   Qed.
 
   Lemma last_holder'_locked_some_eq :
-    forall tr h c n,
-      last_holder' h (tr ++ [(Client c, inr [Locked])]) = Some n ->
+    forall tr h c n id,
+      last_holder' h (tr ++ [(Client c, inr [Locked id])]) = Some n ->
       c = n.
   Proof using.
     induction tr; intros; simpl in *; repeat break_match; subst; eauto.
@@ -1032,8 +1135,8 @@ Section LockServ.
   Qed.
 
   Lemma last_holder'_locked_extend :
-    forall tr h n,
-      last_holder' h (tr ++ [(Client n, inr [Locked])]) = Some n.
+    forall tr h n id,
+      last_holder' h (tr ++ [(Client n, inr [Locked id])]) = Some n.
   Proof using.
     induction tr; intros; simpl in *; repeat break_match; auto.
   Qed.
@@ -1155,7 +1258,7 @@ Section LockServ.
                 end.
                 find_apply_hyp_hyp.
                 apply last_holder'_no_out_extend. auto.
-            - intuition; subst.
+            - intuition; subst; break_exists; break_and; subst.
               + apply trace_mutex'_locked_extend. auto.
                 destruct (last_holder' None tr) eqn:?; auto.
                 find_apply_hyp_hyp.
