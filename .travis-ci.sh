@@ -9,7 +9,7 @@ opam repo add distributedcomponents-dev http://opam-dev.distributedcomponents.ne
 opam pin add coq $COQ_VERSION --yes --verbose
 opam pin add coq-mathcomp-ssreflect $SSREFLECT_VERSION --yes --verbose
 
-opam install StructTact verdi --yes --verbose
+opam install verdi StructTact verdi-runtime ocamlbuild --yes --verbose
 
 case $MODE in
   *)
