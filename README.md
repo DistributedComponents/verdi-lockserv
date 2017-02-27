@@ -66,7 +66,7 @@ and port 9000 for inter-node communication, use the following:
 
     # on 192.168.0.3
     $ ./LockServMain.native -port 8000 -me Client-1 -node Server,192.168.0.1:9000 \
-                    -node Client-0,192.168.0.2:9000 -node Client-2,192.168.0.3:9000
+                    -node Client-0,192.168.0.2:9000 -node Client-1,192.168.0.3:9000
 
 There is a simple client in the directory `extraction/lockserv/script` that can be used as follows:
 
