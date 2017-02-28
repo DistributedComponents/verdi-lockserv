@@ -3,7 +3,7 @@ Verdi LockServ
 
 [![Build Status](https://api.travis-ci.org/DistributedComponents/verdi-lockserv.svg?branch=master)](https://travis-ci.org/DistributedComponents/verdi-lockserv)
 
-An implementation of a simple asynchronous lock server, verified in Coq using the Verdi framework to achieve mutual exclusion.
+An implementation of a simple asynchronous message-passing lock server, verified to achieve mutual exclusion in the Coq proof assistant using the Verdi framework. By extracting Coq code to OCaml and linking the results to a trusted shim that handles network communication, the certified server can run on real hardware.
 
 Requirements
 ------------
@@ -36,7 +36,7 @@ Then, run `./configure` in the root directory.  This will check for the appropri
 
 By default, the script assumes that `Verdi` and `StructTact` are installed in Coq's `user-contrib` directory, but this can be overridden by setting the `Verdi_PATH` and `StructTact_PATH` environment variables.
 
-Finally, run `make` in the root directory. This will compile the lock server definitions, check the proofs of mutual exclusion, and finally build an OCaml program from the extracted code called called `LockServMain` in the `extraction/lockserv` directory.
+Finally, run `make` in the root directory. This will compile the lock server definitions, check the proofs of mutual exclusion, and finally build an OCaml program from the extracted code called `LockServMain` in the `extraction/lockserv` directory.
 
 Running LockServ on a cluster
 -----------------------------
@@ -68,9 +68,9 @@ and port 9000 for inter-node communication, use the following:
     $ ./LockServMain.native -port 8000 -me Client-1 -node Server,192.168.0.1:9000 \
                     -node Client-0,192.168.0.2:9000 -node Client-1,192.168.0.3:9000
 
-There is a simple client in the directory `extraction/lockserv/script` that can be used as follows:
+There is a simple client written in Python in the directory `extraction/lockserv/script` that can be used as follows:
 
-    python -i client.py
+    $ python -i client.py
     >>> c=Client('192.168.0.2', 8000)
     >>> c.send_lock()
     'Locked'
@@ -81,4 +81,4 @@ LockServ with Sequence Numbering
 
 As originally defined, the lock server does not tolerate duplicate messages, which means that `LockServMain` can potentially give unexpected results when the underlying UDP-based runtime system generates duplicates. However, the Verdi framework defines a sequence numbering verified system transformer that when applied allows systems to ignore duplicate messages, while still guaranteeing mutual exclusion.
 
-The directory `extraction/lockserv-seqnum` contains the files needed to produce an OCaml program called `LockServSeqNumMain` which uses the sequence numbering transformer. After running `./configure` in the root directory, simply run `make` in this directory to compile the program. `LockServSeqNumMain` has the same command-line option as `LockServMain`, and the python client can be used to interface with nodes in both kinds of clusters.
+The directory `extraction/lockserv-seqnum` contains the files needed to produce an OCaml program called `LockServSeqNumMain` which uses the sequence numbering transformer. After running `./configure` in the root directory, simply run `make` in this directory to compile the program. `LockServSeqNumMain` has the same command-line option as `LockServMain`, and the Python client can be used to interface with nodes in both kinds of clusters.
