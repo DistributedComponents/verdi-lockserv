@@ -3,7 +3,7 @@ Verdi LockServ
 
 [![Build Status](https://api.travis-ci.org/DistributedComponents/verdi-lockserv.svg?branch=master)](https://travis-ci.org/DistributedComponents/verdi-lockserv)
 
-An implementation of a simple asynchronous message-passing lock server, verified to achieve mutual exclusion in the Coq proof assistant using the Verdi framework. By extracting Coq code to OCaml and linking the results to a trusted shim that handles network communication, the certified server can run on real hardware.
+An implementation of a simple asynchronous message-passing lock server, verified to achieve mutual exclusion in the Coq proof assistant using the Verdi framework. By extracting Coq code to OCaml and linking the results to a trusted shim that handles network communication, the certified system can run on real hardware.
 
 Requirements
 ------------
@@ -79,6 +79,6 @@ There is a simple client written in Python in the directory `extraction/lockserv
 LockServ with Sequence Numbering
 --------------------------------
 
-As originally defined, the lock server does not tolerate duplicate messages, which means that `LockServMain` can potentially give unexpected results when the underlying UDP-based runtime system generates duplicates. However, the Verdi framework defines a sequence numbering verified system transformer that when applied allows systems to ignore duplicate messages, while still guaranteeing mutual exclusion.
+As originally defined, the lock server does not tolerate duplicate messages, which means that `LockServMain` can potentially give unexpected results when the underlying UDP-based runtime system generates duplicates. However, the Verdi framework defines a sequence numbering verified system transformer that when applied allows the lock server to ignore duplicate messages, while still guaranteeing mutual exclusion.
 
-The directory `extraction/lockserv-seqnum` contains the files needed to produce an OCaml program called `LockServSeqNumMain` which uses the sequence numbering transformer. After running `./configure` in the root directory, simply run `make` in this directory to compile the program. `LockServSeqNumMain` has the same command-line option as `LockServMain`, and the Python client can be used to interface with nodes in both kinds of clusters.
+The directory `extraction/lockserv-seqnum` contains the files needed to produce an OCaml program called `LockServSeqNumMain` which uses sequence numbering. After running `./configure` in the root directory, simply run `make` in `extraction/lockserv-seqnum` to compile the program. `LockServSeqNumMain` has the same command-line option as `LockServMain`, and the Python client can be used to interface with nodes in both kinds of clusters.
