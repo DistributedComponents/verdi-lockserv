@@ -3,7 +3,7 @@ Verdi LockServ
 
 [![Build Status](https://api.travis-ci.org/DistributedComponents/verdi-lockserv.svg?branch=master)](https://travis-ci.org/DistributedComponents/verdi-lockserv)
 
-An implementation of a lock server, verified in Coq using the Verdi framework.
+An implementation of a simple asynchronous lock server, verified in Coq using the Verdi framework to achieve mutual exclusion.
 
 Requirements
 ------------
@@ -36,7 +36,7 @@ Then, run `./configure` in the root directory.  This will check for the appropri
 
 By default, the script assumes that `Verdi` and `StructTact` are installed in Coq's `user-contrib` directory, but this can be overridden by setting the `Verdi_PATH` and `StructTact_PATH` environment variables.
 
-Finally, run `make` in the root directory. This will compile the lock server definitions, check the proofs, and finally build an OCaml program from the extracted code called called `LockServMain` in the `extraction/lockserv` directory.
+Finally, run `make` in the root directory. This will compile the lock server definitions, check the proofs of mutual exclusion, and finally build an OCaml program from the extracted code called called `LockServMain` in the `extraction/lockserv` directory.
 
 Running LockServ on a cluster
 -----------------------------
@@ -75,3 +75,10 @@ There is a simple client in the directory `extraction/lockserv/script` that can 
     >>> c.send_lock()
     'Locked'
     >>> c.send_unlock()
+
+LockServ with Sequence Numbering
+--------------------------------
+
+As originally defined, the lock server does not tolerate duplicate messages, which means that `LockServMain` can potentially give unexpected results when the underlying UDP-based runtime system generates duplicates. However, the Verdi framework defines a sequence numbering verified system transformer that when applied allows systems to ignore duplicate messages, while still guaranteeing mutual exclusion.
+
+The directory `extraction/lockserv-seqnum` contains the files needed to produce an OCaml program called `LockServSeqNumMain` which uses the sequence numbering transformer. After running `./configure` in the root directory, simply run `make` in this directory to compile the program. `LockServSeqNumMain` has the same command-line option as `LockServMain`, and the python client can be used to interface with nodes in both kinds of clusters.
