@@ -16,7 +16,7 @@ module LockServSeqNumArrangement (P : Params) = struct
   type client_id = int
   type res = (output list * state) * ((name * msg) list)
   type task_handler = name -> state -> res
-  type timeout_setter = name -> state -> float
+  type timeout_setter = name -> state -> float option
 
   let systemName = "Lock Server with Sequence Numbering"
 

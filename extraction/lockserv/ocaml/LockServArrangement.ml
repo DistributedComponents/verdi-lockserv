@@ -16,7 +16,7 @@ module LockServArrangement (P : Params) = struct
   type client_id = int
   type res = (output list * state) * ((name * msg) list)
   type task_handler = name -> state -> res
-  type timeout_setter = name -> state -> float
+  type timeout_setter = name -> state -> float option
 
   let systemName = "Lock Server"
 
@@ -35,7 +35,7 @@ module LockServArrangement (P : Params) = struct
   let handleNet = fun dst src m s ->
     let open LockServ in
     Obj.magic ((lockServ_MultiParams P.num_clients).net_handlers (Obj.magic dst) (Obj.magic src) (Obj.magic m) (Obj.magic s))
-    
+
   let deserializeMsg = LockServSerialization.deserializeMsg
 
   let serializeMsg = LockServSerialization.serializeMsg
