@@ -38,7 +38,7 @@ By default, the script assumes that `Verdi` and `StructTact` are installed in Co
 
 Finally, run `make` in the root directory. This will compile the lock server definitions, check the proofs of mutual exclusion, and finally build an OCaml program from the extracted code called `LockServMain` in the `extraction/lockserv` directory.
 
-Running LockServ on a cluster
+Running LockServ on a Cluster
 -----------------------------
 
 `LockServMain` accepts the following command-line options:
@@ -81,4 +81,4 @@ LockServ with Sequence Numbering
 
 As originally defined, the lock server does not tolerate duplicate messages, which means that `LockServMain` can potentially give unexpected results when the underlying UDP-based runtime system generates duplicates. However, the Verdi framework defines a sequence numbering verified system transformer that when applied allows the lock server to ignore duplicate messages, while still guaranteeing mutual exclusion.
 
-The directory `extraction/lockserv-seqnum` contains the files needed to produce an OCaml program called `LockServSeqNumMain` which uses sequence numbering. After running `./configure` in the root directory, simply run `make` in `extraction/lockserv-seqnum` to compile the program. `LockServSeqNumMain` has the same command-line option as `LockServMain`, and the Python client can be used to interface with nodes in both kinds of clusters.
+The directory `extraction/lockserv-seqnum` contains the files needed to produce an OCaml program called `LockServSeqNumMain` which uses sequence numbering. After running `./configure` in the root directory, simply run `make` in `extraction/lockserv-seqnum` to compile the program. `LockServSeqNumMain` has the same command-line options as `LockServMain`, and the Python client can be used to interface with nodes in both kinds of clusters.
