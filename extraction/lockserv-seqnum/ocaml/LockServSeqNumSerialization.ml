@@ -9,10 +9,10 @@ let deserializeName (s : string) : LockServSeqNum.name0 option =
     try Scanf.sscanf s "Client-%d" (fun x -> Some (LockServSeqNum.Client (Obj.magic x)))
     with _ -> None
 
-let deserializeMsg : string -> LockServSeqNum.seq_num_msg = fun s ->
+let deserializeMsg : bytes -> LockServSeqNum.seq_num_msg = fun s ->
   Marshal.from_string s 0
 
-let serializeMsg : LockServSeqNum.seq_num_msg -> string = fun m ->
+let serializeMsg : LockServSeqNum.seq_num_msg -> bytes = fun m ->
   Marshal.to_string m []
 
 let deserializeInput inp c : LockServSeqNum.msg0 option =
