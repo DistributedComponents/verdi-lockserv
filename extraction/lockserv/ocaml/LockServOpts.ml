@@ -5,7 +5,7 @@ open Str
 let cluster_default : (LockServ.name * (string * int)) list = []
 let me_default : LockServ.name = LockServ.Server
 let port_default : int = 8351
-let debug_default : bool = true
+let debug_default : bool = false
 
 let cluster = ref cluster_default
 let me = ref me_default
