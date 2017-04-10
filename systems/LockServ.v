@@ -22,54 +22,70 @@ Section LockServ.
 
   Definition Name_eq_dec : forall a b : Name, {a = b} + {a <> b}.
     decide equality. apply fin_eq_dec.
-  Qed.
+  Defined.
+
+  Definition Request_index := nat.
 
   Inductive Msg :=
-  | Lock   : nat -> Msg
+  | Lock   : Request_index -> Msg
   | Unlock : Msg
-  | Locked : nat -> Msg.
+  | Locked : Request_index -> Msg.
 
   Definition Msg_eq_dec : forall a b : Msg, {a = b} + {a <> b}.
     decide equality; auto using Nat.eq_dec.
-  Qed.
+  Defined.
     
   Definition Input := Msg.
   Definition Output := Msg.
 
-  Record Data := mkData { queue : list (Client_index * nat) ; held : bool }.
+  Record Data := mkData { queue : list (Client_index * Request_index) ; held : bool }.
+
+  Definition set_Data_queue d q := mkData q (held d).
+  Definition set_Data_held d b := mkData (queue d) b.
+
+  Notation "{[ d 'with' 'queue' := q ]}" := (set_Data_queue d q).
+  Notation "{[ d 'with' 'held' := b ]}" := (set_Data_held d b).
 
   Definition init_data (n : Name) : Data := mkData [] false.
 
   Definition Handler (S : Type) := GenHandler (Name * Msg) S Output unit.
 
   Definition ClientNetHandler (i : Client_index) (m : Msg) : Handler Data :=
+    d <- get ;;
     match m with
-      | Locked id => (put (mkData [] true)) >> write_output (Locked id)
+      | Locked id =>
+        put {[ d with held := true ]} ;;
+        write_output (Locked id)
       | _ => nop
     end.
 
   Definition ClientIOHandler (i : Client_index) (m : Msg) : Handler Data :=
+    d <- get ;;
     match m with
       | Lock id => send (Server, Lock id)
-      | Unlock => data <- get ;;
-                  when (held data) (put (mkData [] false) >> send (Server, Unlock))
+      | Unlock =>
+        when (held d) (put {[ d with held := false ]} ;; send (Server, Unlock))
       | _ => nop
     end.
 
   Definition ServerNetHandler (src : Name) (m : Msg) : Handler Data :=
-    st <- get ;;
-    let q := queue st in
+    d <- get ;;
     match m with
       | Lock id =>
         match src with
           | Server => nop
           | Client c =>
-            when (null q) (send (src, Locked id)) >> put (mkData (q ++ [(c, id)]) (held st))
+            when (null (queue d)) (send (src, Locked id)) ;;
+            put ({[ d with queue := queue d ++ [(c, id)] ]})
         end
-      | Unlock => match q with
-                    | _ :: (c, id) :: xs => put (mkData ((c, id) :: xs) (held st)) >> send (Client c, Locked id)
-                    | _ => put (mkData [] (held st))
-                  end
+      | Unlock =>
+        match queue d with
+          | _ :: (c, id) :: xs =>
+            put {[ d with queue := (c, id) :: xs ]} ;;
+            send (Client c, Locked id)
+          | _ =>
+            put {[ d with queue := [] ]}
+        end
       | _ => nop
     end.
 
@@ -180,7 +196,7 @@ Section LockServ.
 
   Definition valid_unlock q h c p :=
     pSrc p = Client c /\
-    (exists (id : nat) t, q = (c, id) :: t) /\
+    (exists (id : Request_index) t, q = (c, id) :: t) /\
     h = false.
 
   Definition locks_correct_unlock (sigma : name -> data) (p : packet) : Prop :=
@@ -189,7 +205,7 @@ Section LockServ.
 
   Definition valid_locked q h c p :=
       pDst p = Client c /\
-      (exists (id : nat) t, q = (c, id) :: t) /\
+      (exists (id : Request_index) t, q = (c, id) :: t) /\
       h = false.
 
   Definition locks_correct_locked (sigma : name -> data) (p : packet) : Prop :=
@@ -431,8 +447,6 @@ Section LockServ.
   Proof using.
     unfold locks_correct, at_head_of_queue.
     firstorder.
-    rewrite_update.
-    eauto.
   Qed.
 
   Lemma snoc_at_head_of_queue_preserved :
@@ -628,10 +642,10 @@ Section LockServ.
     unfold LockServ_network_network_invariant.
     intros.
     destruct (pBody q); intuition; try discriminate.
-    - exists n; auto.
+    - exists r; auto.
     - pose proof (H _ H0).
       intuition.
-    - pose proof (H4 _ n H0).
+    - pose proof (H4 _ r H0).
       congruence.
   Qed.
 
@@ -644,8 +658,8 @@ Section LockServ.
     unfold LockServ_network_network_invariant.
     intros.
     destruct (pBody q); intuition; try discriminate.
-    - exists n; auto.
-    - pose proof (H2 n H0).
+    - exists r; auto.
+    - pose proof (H2 r H0).
       congruence.
   Qed.
 
@@ -677,8 +691,7 @@ Section LockServ.
     break_exists.
     exists x.
     intuition.
-    - firstorder.
-    - now rewrite_update.
+    firstorder.
   Qed.
 
   Lemma nil_at_head_of_queue_preserved :
@@ -740,8 +753,7 @@ Section LockServ.
     break_exists.
     exists x.
     intuition.
-    - firstorder.
-    - now rewrite_update.
+    firstorder.
   Qed.
 
   Lemma locks_correct_locked_net_handlers_old :
@@ -800,8 +812,7 @@ Section LockServ.
     intros.
     exists c.
     intuition.
-    - exists id, t. now rewrite_update.
-    - now rewrite_update.
+    exists id, t. now rewrite_update.
   Qed.
 
   Lemma locks_correct_locked_net_handlers_new :
@@ -879,8 +890,8 @@ Section LockServ.
     intuition.
     destruct (pBody p) eqn:?; intuition; break_exists; intuition; break_exists;
     try congruence.
-    - exists n; auto.
-    - pose proof (H2 n (eq_refl _)).
+    - exists r; auto.
+    - pose proof (H2 r (eq_refl _)).
       break_exists; break_and; break_exists.
       congruence.
   Qed.

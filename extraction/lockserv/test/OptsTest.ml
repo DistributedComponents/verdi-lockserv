@@ -13,6 +13,13 @@ let test_parse_correct_line test_ctxt =
   assert_equal LockServ.Server !LockServOpts.me;
   assert_equal 8000 !LockServOpts.port;
   assert_equal [(LockServ.Server, ("localhost", 9000)); (LockServ.Client 0, ("localhost", 9001)); (LockServ.Client 1, ("localhost", 9002))] !LockServOpts.cluster;
+  assert_equal false !LockServOpts.debug
+
+let test_parse_correct_line_with_debug test_ctxt =
+  LockServOpts.parse (arr_of_string "./LockServMain.native -debug -me Client-0 -port 8000 -node Server,localhost:9000 -node Client-0,localhost:9001");
+  assert_equal (LockServ.Client 0) !LockServOpts.me;
+  assert_equal 8000 !LockServOpts.port;
+  assert_equal [(LockServ.Server, ("localhost", 9000)); (LockServ.Client 0, ("localhost", 9001))] !LockServOpts.cluster;
   assert_equal true !LockServOpts.debug
 
 let test_validate_correct_line test_ctxt =
@@ -37,6 +44,7 @@ let test_validate_same_client_msg_port test_ctxt =
 
 let test_list =
   ["parse correct line", test_parse_correct_line;
+   "parse correct line with debug", test_parse_correct_line_with_debug;
    "validate correct line", test_validate_correct_line;
    "validate empty cluster", test_validate_empty_cluster;
    "validate me not member of cluster", test_validate_me_not_cluster_member;
