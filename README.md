@@ -10,13 +10,13 @@ Requirements
 
 Definitions and proofs:
 
-- [`Coq 8.5`](https://coq.inria.fr/download)
+- [`Coq 8.5`](https://coq.inria.fr/coq-85) or [`Coq 8.6`](https://coq.inria.fr/coq-86)
 - [`Verdi`](https://github.com/uwplse/verdi)
 - [`StructTact`](https://github.com/uwplse/StructTact)
 
 Executable code:
 
-- [`OCaml 4.02.3`](https://ocaml.org)
+- [`OCaml 4.02.3`](https://ocaml.org) (or later)
 - [`OCamlbuild`](https://github.com/ocaml/ocamlbuild)
 - [`ocamlfind`](http://projects.camlcity.org/projects/findlib.html)
 - [`verdi-runtime`](https://github.com/DistributedComponents/verdi-runtime)
