@@ -76,7 +76,7 @@ Section LockServ.
           | Server => nop
           | Client c =>
             when (null (queue d)) (send (src, Locked id)) ;;
-            put ({[ d with queue := queue d ++ [(c, id)] ]})
+            put {[ d with queue := queue d ++ [(c, id)] ]}
         end
       | Unlock =>
         match queue d with
