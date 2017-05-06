@@ -14,12 +14,20 @@ Definitions and proofs:
 - [`Verdi`](https://github.com/uwplse/verdi)
 - [`StructTact`](https://github.com/uwplse/StructTact)
 
-Executable code:
+Executable program:
 
 - [`OCaml 4.02.3`](https://ocaml.org) (or later)
 - [`OCamlbuild`](https://github.com/ocaml/ocamlbuild)
 - [`ocamlfind`](http://projects.camlcity.org/projects/findlib.html)
 - [`verdi-runtime`](https://github.com/DistributedComponents/verdi-runtime)
+
+Client to interface with program:
+
+- [`Python 2.7`](https://www.python.org/download/releases/2.7/)
+
+Testing of unverified code:
+
+- [`OUnit 2.0.0`](http://ounit.forge.ocamlcore.org)
 
 Building
 --------
@@ -68,6 +76,9 @@ and port 9000 for inter-node communication, use the following:
     $ ./LockServMain.native -port 8000 -me Client-1 -node Server,192.168.0.1:9000 \
                     -node Client-0,192.168.0.2:9000 -node Client-1,192.168.0.3:9000
 
+Client Program for LockServ
+---------------------------
+
 There is a simple client written in Python in the directory `extraction/lockserv/script` that can be used as follows:
 
     $ python -i client.py
@@ -75,6 +86,17 @@ There is a simple client written in Python in the directory `extraction/lockserv
     >>> c.send_lock()
     'Locked'
     >>> c.send_unlock()
+
+Tests for Unverified Code
+-------------------------
+
+Some example unit tests for unverified OCaml code are included in `extraction/lockserv/test`. To execute these tests, first install the OUnit library via OPAM:
+
+```
+opam install ounit
+```
+
+Then, go to `extraction/lockserv` and run `make test`.
 
 LockServ with Sequence Numbering
 --------------------------------
