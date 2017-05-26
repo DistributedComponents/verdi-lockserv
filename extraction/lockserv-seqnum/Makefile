@@ -1,4 +1,4 @@
-OCAMLBUILD = ocamlbuild -use-ocamlfind -tag thread -package verdi-runtime -I ocaml -cflag -g
+OCAMLBUILD = ocamlbuild -use-ocamlfind -tags safe_string,thread -package verdi-runtime -I ocaml -cflag -g
 
 MLEXTRACTED = ocaml/LockServSeqNum.ml ocaml/LockServSeqNum.mli
 

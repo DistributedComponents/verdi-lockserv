@@ -1,4 +1,4 @@
-OCAMLBUILD = ocamlbuild -use-ocamlfind -tag thread -package verdi-runtime -I ocaml -cflag -g
+OCAMLBUILD = ocamlbuild -use-ocamlfind -tags thread,safe_string -package verdi-runtime -I ocaml -cflag -g
 OCAMLBUILD_TEST = $(OCAMLBUILD) -package oUnit -I test
 
 MLEXTRACTED = ocaml/LockServ.ml ocaml/LockServ.mli
@@ -6,8 +6,7 @@ MLEXTRACTED = ocaml/LockServ.ml ocaml/LockServ.mli
 MLFILES = ocaml/LockServArrangement.ml ocaml/LockServSerialization.ml \
  ocaml/LockServMain.ml ocaml/LockServOpts.ml
 
-MLFILES_TEST = test/LockServTest.ml test/OptsTest.ml \
- test/SerializationTest.ml test/TestCommon.ml
+MLFILES_TEST = test/LockServTest.ml test/OptsTest.ml test/SerializationTest.ml
 
 default: LockServMain.native
 

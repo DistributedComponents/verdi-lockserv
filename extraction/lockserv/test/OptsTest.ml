@@ -1,6 +1,6 @@
 open OUnit2
 open ListLabels
-open TestCommon
+open Util
 
 let tear_down () test_ctxt =
   LockServOpts.cluster := LockServOpts.cluster_default;

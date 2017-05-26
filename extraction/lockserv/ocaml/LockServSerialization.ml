@@ -9,11 +9,11 @@ let deserializeName (s : string) : LockServ.name option =
     try Scanf.sscanf s "Client-%d" (fun x -> Some (LockServ.Client (Obj.magic x)))
     with _ -> None
 
-let deserializeMsg : bytes -> LockServ.msg = fun s ->
-  Marshal.from_bytes s 0
+let deserializeMsg : string -> LockServ.msg = fun s ->
+  Marshal.from_string s 0
 
-let serializeMsg : LockServ.msg -> bytes = fun m ->
-  Marshal.to_bytes m []
+let serializeMsg : LockServ.msg -> string = fun m ->
+  Marshal.to_string m []
 
 let deserializeInput inp c : LockServ.msg option =
   match inp with
