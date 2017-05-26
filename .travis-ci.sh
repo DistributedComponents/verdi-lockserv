@@ -7,12 +7,15 @@ opam repo add coq-released https://coq.inria.fr/opam/released
 opam repo add distributedcomponents-dev http://opam-dev.distributedcomponents.net
 
 opam pin add coq $COQ_VERSION --yes --verbose
-opam pin add coq-mathcomp-ssreflect $SSREFLECT_VERSION --yes --verbose
-
-opam install verdi StructTact verdi-runtime ocamlbuild --yes --verbose
 
 case $MODE in
+  lockserv)
+    opam pin add lockserv . --yes --verbose
+    ;;
+  lockserv-seqnum)
+    opam pin add lockserv-seqnum . --yes --verbose
+    ;;
   *)
-    ./build.sh
+    opam pin add verdi-lockserv . --yes --verbose
     ;;
 esac

@@ -9,8 +9,10 @@ addons:
       - aspcud
 env:
   matrix:
-    - MODE=build COQ_VERSION=8.6 SSREFLECT_VERSION=1.6.1
-    - MODE=build COQ_VERSION=8.5.3 SSREFLECT_VERSION=1.6
+    - MODE=build COQ_VERSION=8.5.3
+    - MODE=build COQ_VERSION=8.6
+    - MODE=lockserv COQ_VERSION=8.6 OPAMBUILDTEST=1
+    - MODE=lockserv-seqnum COQ_VERSION=8.6
 script: bash -ex .travis-ci.sh
 sudo: false
 notifications:

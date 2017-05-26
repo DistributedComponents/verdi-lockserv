@@ -44,7 +44,9 @@ Then, run `./configure` in the root directory.  This will check for the appropri
 
 By default, the script assumes that `Verdi` and `StructTact` are installed in Coq's `user-contrib` directory, but this can be overridden by setting the `Verdi_PATH` and `StructTact_PATH` environment variables.
 
-Finally, run `make` in the root directory. This will compile the lock server definitions, check the proofs of mutual exclusion, and finally build an OCaml program from the extracted code called `LockServMain` in the `extraction/lockserv` directory.
+Finally, run `make` in the root directory. This will compile the lock server definitions, check the proofs of mutual exclusion, and extract OCaml event handler code.
+
+To build an OCaml program from the extracted code called `LockServMain.native` in the `extraction/lockserv` directory, run `make lockserv` in the root directory.
 
 Running LockServ on a Cluster
 -----------------------------

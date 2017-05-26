@@ -18,7 +18,6 @@ endif
 
 default: Makefile.coq
 	$(MAKE) -f Makefile.coq
-	+$(MAKE) -C extraction/lockserv
 
 LOCKSERV_MLFILES = extraction/lockserv/ocaml/LockServ.ml extraction/lockserv/ocaml/LockServ.mli
 LOCKSERV_SEQNUM_MLFILES = extraction/lockserv-seqnum/ocaml/LockServSeqNum.ml extraction/lockserv-seqnum/ocaml/LockServSeqNum.mli
@@ -40,6 +39,9 @@ $(LOCKSERV_MLFILES) $(LOCKSERV_SEQNUM_MLFILES): Makefile.coq
 lockserv:
 	+$(MAKE) -C extraction/lockserv
 
+lockserv-test:
+	+$(MAKE) -C extraction/lockserv test
+
 lockserv-seqnum:
 	+$(MAKE) -C extraction/lockserv-seqnum
 
@@ -57,4 +59,4 @@ lint:
 distclean: clean
 	rm -f _CoqProject
 
-.PHONY: default clean lint $(LOCKSERV_MLFILES) $(LOCKSERV_SEQNUM_MLFILES) lockserv lockserv-seqnum
+.PHONY: default clean lint $(LOCKSERV_MLFILES) $(LOCKSERV_SEQNUM_MLFILES) lockserv lockserv-test lockserv-seqnum
