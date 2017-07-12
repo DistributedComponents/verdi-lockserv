@@ -19,7 +19,7 @@ LockServSerializedMain.byte: $(MLEXTRACTED) $(MLFILES) script/remove_module.pl
 	$(OCAMLBUILD) -tag debug LockServSerializedMain.byte
 
 clean:
-	$(OCAMLBUILD) -clean
+	ocamlbuild -clean
 
 .PHONY: default clean $(MLEXTRACTED)
 

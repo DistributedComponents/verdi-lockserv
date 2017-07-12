@@ -1,37 +1,34 @@
-let serializeName : LockServ.name -> string = function
+let serialize_name : LockServ.name -> string = function
   | LockServ.Server -> "Server"
   | LockServ.Client i -> Printf.sprintf "Client-%d" i
 
-let deserializeName (s : string) : LockServ.name option =
+let deserialize_name (s : string) : LockServ.name option =
   match s with
   | "Server" -> Some LockServ.Server
   | _ -> 
     try Scanf.sscanf s "Client-%d" (fun x -> Some (LockServ.Client (Obj.magic x)))
     with _ -> None
 
-let deserializeMsg : string -> LockServ.msg = fun s ->
-  Marshal.from_string s 0
+let deserialize_msg : bytes -> LockServ.msg = fun s ->
+  Marshal.from_bytes s 0
 
-let serializeMsg : LockServ.msg -> string = fun m ->
-  Marshal.to_string m []
+let serialize_msg : LockServ.msg -> bytes = fun m ->
+  Marshal.to_bytes m []
 
-(* run after receiving from client socket *)
-let deserializeInput inp c : LockServ.msg option =
-  match inp with
+let deserialize_input inp c : LockServ.msg option =
+  match Bytes.to_string inp with
   | "Unlock" -> Some LockServ.Unlock
   | "Lock" -> Some (LockServ.Lock c)
   | "Locked" -> Some (LockServ.Locked c)
   | _ -> None
 
-(* received from handler, sent to client *)
-let serializeOutput : LockServ.msg -> int * string = function
-  | LockServ.Lock _ -> (0, "Lock") (* never happens *)
-  | LockServ.Unlock -> (0, "Unlock") (* never happens *)
-  | LockServ.Locked c -> (c, "Locked")
+let serialize_output : LockServ.msg -> int * bytes = function
+  | LockServ.Locked c -> (c, Bytes.of_string "Locked")
+  | _ -> failwith "wrong output"
 
-let debugSerializeInput : LockServ.msg -> string = function
+let debug_msg : LockServ.msg -> string = function
   | LockServ.Lock c -> Printf.sprintf "Lock %d" c
   | LockServ.Unlock -> "Unlock"
   | LockServ.Locked c -> Printf.sprintf "Locked %d" c
 
-let debugSerializeMsg = debugSerializeInput
+let debug_input = debug_msg

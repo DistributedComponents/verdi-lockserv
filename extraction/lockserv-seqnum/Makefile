@@ -14,7 +14,7 @@ LockServSeqNumMain.native: $(MLEXTRACTED) $(MLFILES)
 	$(OCAMLBUILD) LockServSeqNumMain.native
 
 clean:
-	$(OCAMLBUILD) -clean
+	ocamlbuild -clean
 
 .PHONY: default clean $(MLEXTRACTED)
 

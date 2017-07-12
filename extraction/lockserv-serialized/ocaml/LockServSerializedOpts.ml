@@ -16,7 +16,7 @@ let node_spec arg nodes_ref doc =
   let parse opt =
     (* name,ip:port *)
     if string_match (regexp "\\([^,]+\\),\\(.+\\):\\([0-9]+\\)") opt 0 then
-      match LockServSerializedSerialization.deserializeName (matched_group 1 opt) with
+      match LockServSerializedSerialization.deserialize_name (matched_group 1 opt) with
       | Some nm -> (nm, (matched_group 2 opt, int_of_string (matched_group 3 opt)))
       | None -> raise (Arg.Bad (sprintf "wrong argument: '%s'; option '%s' expects a proper name" arg opt))
     else
@@ -27,7 +27,7 @@ let parse inp =
   let opts =
     [ node_spec "-node" cluster "{name,host:port} one node in the cluster"
     ; ("-me", Arg.String (fun opt -> 
-      match LockServSerializedSerialization.deserializeName opt with 
+      match LockServSerializedSerialization.deserialize_name opt with 
       | Some nm -> me := nm
       | None -> raise (Arg.Bad (sprintf "wrong argument: '-me' expects a proper name"))), "{name} name for this node")
     ; ("-port", Arg.Set_int port, "{port} port for client commands")
@@ -46,7 +46,7 @@ let validate () =
   if length !cluster = 0 then
     raise (Arg.Bad "Please specify at least one -node");
   if not (mem_assoc !me !cluster) then
-    raise (Arg.Bad (sprintf "%s is not a member of this cluster" (LockServSerializedSerialization.serializeName !me)));
+    raise (Arg.Bad (sprintf "%s is not a member of this cluster" (LockServSerializedSerialization.serialize_name !me)));
   if not (assoc_unique !cluster) then
     raise (Arg.Bad "Please remove duplicate -node name entries");
   if !port = snd (List.assoc !me !cluster) then

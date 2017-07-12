@@ -18,51 +18,56 @@ module LockServSerializedArrangement (P : Params) = struct
   type task_handler = name -> state -> res
   type timeout_setter = name -> state -> float option
 
-  let systemName = "Lock Server with serialization"
-
-  let serializeName = LockServSerializedSerialization.serializeName
-
-  let deserializeName = LockServSerializedSerialization.deserializeName
+  let system_name = "Lock Server with serialization"
 
   let init = fun n ->
     let open LockServSerialized in
     Obj.magic ((transformed_multi_params P.num_clients).init_handlers (Obj.magic n))
 
-  let handleIO = fun n i s ->
+  let handle_input = fun n i s ->
     let open LockServSerialized in
     Obj.magic ((transformed_multi_params P.num_clients).input_handlers (Obj.magic n) (Obj.magic i) (Obj.magic s))
 
-  let handleNet = fun dst src m s ->
+  let handle_msg = fun dst src m s ->
     let open LockServSerialized in
     Obj.magic ((transformed_multi_params P.num_clients).net_handlers (Obj.magic dst) (Obj.magic src) (Obj.magic m) (Obj.magic s))
     
-  let deserializeMsg = fun s -> Bytes.of_string s
+  let deserialize_msg = fun s -> s
 
-  let serializeMsg = fun s -> Bytes.to_string s
+  let serialize_msg = fun s -> s
 
-  let deserializeInput = LockServSerializedSerialization.deserializeInput
+  let deserialize_input = LockServSerializedSerialization.deserialize_input
 
-  let serializeOutput = LockServSerializedSerialization.serializeOutput
+  let serialize_output = LockServSerializedSerialization.serialize_output
 
   let debug = P.debug
 
-  let debugInput = fun _ inp ->
-    Printf.printf "[%s] got input %s" (Util.timestamp ()) (LockServSerializedSerialization.debugSerializeInput inp);
+  let debug_input = fun _ inp ->
+    Printf.printf
+      "[%s] got input %s"
+      (Util.timestamp ())
+      (LockServSerializedSerialization.debug_input inp);
     print_newline ()
 
-  let debugRecv = fun _ (nm, msg) ->
-    Printf.printf "[%s] receiving message from %s" (Util.timestamp ()) (serializeName nm);
+  let debug_recv_msg = fun _ (nm, msg) ->
+    Printf.printf
+      "[%s] receiving message from %s"
+      (Util.timestamp ())
+      (LockServSerializedSerialization.serialize_name nm);
     print_newline ()
 
-  let debugSend = fun _ (nm, msg) ->
-    Printf.printf "[%s] sending message to %s" (Util.timestamp ()) (serializeName nm);
+  let debug_send_msg = fun _ (nm, msg) ->
+    Printf.printf
+      "[%s] sending message to %s"
+      (Util.timestamp ())
+      (LockServSerializedSerialization.serialize_name nm);
     print_newline ()
 
-  let createClientId () =
+  let create_client_id () =
     let upper_bound = 1073741823 in
     Random.int upper_bound
 
-  let serializeClientId = string_of_int
+  let string_of_client_id = string_of_int
 
-  let timeoutTasks = []
+  let timeout_tasks = []
 end

@@ -4,16 +4,16 @@ open ListLabels
 let tear_down () test_ctxt = ()
 
 let test_deserialize_server_name test_ctxt =
-  assert_equal (Some LockServ.Server) (LockServSerialization.deserializeName "Server")
+  assert_equal (Some LockServ.Server) (LockServSerialization.deserialize_name "Server")
 
 let test_deserialize_client_name test_ctxt =
-  assert_equal (Some (LockServ.Client 5)) (LockServSerialization.deserializeName "Client-5")
+  assert_equal (Some (LockServ.Client 5)) (LockServSerialization.deserialize_name "Client-5")
 
 let test_serialize_server_name test_ctxt =
-  assert_equal "Server" (LockServSerialization.serializeName LockServ.Server)
+  assert_equal "Server" (LockServSerialization.serialize_name LockServ.Server)
 
 let test_serialize_client_name test_ctxt =
-  assert_equal "Client-0" (LockServSerialization.serializeName (LockServ.Client 0))
+  assert_equal "Client-0" (LockServSerialization.serialize_name (LockServ.Client 0))
 
 let test_list =
   [

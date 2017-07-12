@@ -23,7 +23,7 @@ test: LockServTest.native
 	./LockServTest.native
 
 clean:
-	$(OCAMLBUILD) -clean
+	ocamlbuild -clean
 
 .PHONY: default clean test $(MLEXTRACTED)
 
