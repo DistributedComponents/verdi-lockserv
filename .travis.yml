@@ -13,6 +13,7 @@ env:
     - MODE=build COQ_VERSION=8.6
     - MODE=lockserv COQ_VERSION=8.6 OPAMBUILDTEST=1
     - MODE=lockserv-seqnum COQ_VERSION=8.6
+    - MODE=lockserv-serialized COQ_VERSION=8.6
 script: bash -ex .travis-ci.sh
 sudo: false
 notifications:

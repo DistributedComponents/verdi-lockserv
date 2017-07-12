@@ -15,6 +15,9 @@ case $MODE in
   lockserv-seqnum)
     opam pin add lockserv-seqnum . --yes --verbose
     ;;
+  lockserv-serialized)
+    opam pin add lockserv-serialized . --yes --verbose
+    ;;
   *)
     opam pin add verdi-lockserv . --yes --verbose
     ;;

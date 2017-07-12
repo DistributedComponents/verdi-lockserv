@@ -13,6 +13,8 @@ Definitions and proofs:
 - [`Coq 8.5`](https://coq.inria.fr/coq-85) or [`Coq 8.6`](https://coq.inria.fr/coq-86)
 - [`Verdi`](https://github.com/uwplse/verdi)
 - [`StructTact`](https://github.com/uwplse/StructTact)
+- [`Cheerios`](https://github.com/uwplse/cheerios)
+- [`VerdiCheerios`](https://github.com/DistributedComponents/verdi-cheerios)
 
 Executable program:
 
@@ -20,6 +22,7 @@ Executable program:
 - [`OCamlbuild`](https://github.com/ocaml/ocamlbuild)
 - [`ocamlfind`](http://projects.camlcity.org/projects/findlib.html)
 - [`verdi-runtime`](https://github.com/DistributedComponents/verdi-runtime)
+- [`cheerios-runtime`](https://github.com/uwplse/cheerios)
 
 Client to interface with program:
 
@@ -37,7 +40,7 @@ The recommended way to install the OCaml and Coq dependencies of Verdi LockServ 
 ```
 opam repo add coq-released https://coq.inria.fr/opam/released
 opam repo add distributedcomponents-dev http://opam-dev.distributedcomponents.net
-opam install verdi StructTact verdi-runtime ocamlbuild
+opam install verdi cheerios StructTact verdi-runtime cheerios-runtime ocamlbuild ocamlfind
 ```
 
 Then, run `./configure` in the root directory.  This will check for the appropriate version of Coq and ensure all necessary dependencies can be located.
@@ -106,3 +109,10 @@ LockServ with Sequence Numbering
 As originally defined, the lock server does not tolerate duplicate messages, which means that `LockServMain` can potentially give unexpected results when the underlying UDP-based runtime system generates duplicates. However, the Verdi framework defines a sequence numbering verified system transformer that when applied allows the lock server to ignore duplicate messages, while still guaranteeing mutual exclusion.
 
 The directory `extraction/lockserv-seqnum` contains the files needed to produce an OCaml program called `LockServSeqNumMain` which uses sequence numbering. After running `./configure` in the root directory, simply run `make` in `extraction/lockserv-seqnum` to compile the program. `LockServSeqNumMain` has the same command-line options as `LockServMain`, and the Python client can be used to interface with nodes in both kinds of clusters.
+
+LockServ with Verified Serialization
+------------------------------------
+
+The standard lock server serializes messages over the network via OCaml's `Marshal` module, which must be trusted to trust the whole system. However, using the Cheerios serialization library and a Verdi verified system transformer for Cheerios, the use of `Marshal` can be eliminated while upholding the same mutual exclusion guarantees.
+
+The directory `extraction/lockserv-serialized` contains the files needed to produce an OCaml program called `LockServSerializedMain` which uses Cheerios and its runtime library. After running `./configure` in the root directory, simply run `make` in `extraction/lockserv-serialized` to compile the program. `LockServSerializedMain` has the same command-line options as `LockServMain`, and the Python client can be used to interface with nodes in both kinds of clusters.

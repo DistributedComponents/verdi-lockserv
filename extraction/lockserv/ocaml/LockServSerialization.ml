@@ -15,6 +15,7 @@ let deserializeMsg : string -> LockServ.msg = fun s ->
 let serializeMsg : LockServ.msg -> string = fun m ->
   Marshal.to_string m []
 
+(* run after receiving from client socket *)
 let deserializeInput inp c : LockServ.msg option =
   match inp with
   | "Unlock" -> Some LockServ.Unlock
@@ -22,6 +23,7 @@ let deserializeInput inp c : LockServ.msg option =
   | "Locked" -> Some (LockServ.Locked c)
   | _ -> None
 
+(* received from handler, sent to client *)
 let serializeOutput : LockServ.msg -> int * string = function
   | LockServ.Lock _ -> (0, "Lock") (* never happens *)
   | LockServ.Unlock -> (0, "Unlock") (* never happens *)

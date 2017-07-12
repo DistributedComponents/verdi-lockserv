@@ -9,14 +9,19 @@ license: "BSD"
 
 build: [
   [ "./configure" ]
-  [ make "-j%{jobs}%" ]
+  [ make "-j%{jobs}%" "lockserv-serialized" ]
 ]
+available: [ ocaml-version >= "4.02.3" ]
 depends: [
   "coq" {((>= "8.5" & < "8.6~") | (>= "8.6" & < "8.7~"))}
   "verdi" {= "dev"}
   "StructTact" {= "dev"}
   "cheerios" {= "dev"}
   "verdi-cheerios" {= "dev"}
+  "verdi-runtime" {= "dev"}
+  "cheerios-runtime" {= "dev"}
+  "ocamlfind" {build}
+  "ocamlbuild" {build}
 ]
 
 authors: [
