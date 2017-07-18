@@ -1,31 +1,37 @@
 Require Import Verdi.Verdi.
 
-Require Import Cheerios.Core.
-Require Import Cheerios.Types.
+
 Require Import Cheerios.BasicSerializers.
+Require Import Cheerios.Core.
+Require Import Cheerios.IOStream.
 Require Import Cheerios.Tactics.
-Require Import Cheerios.DeserializerMonad.
-Import DeserializerNotations.
+Require Import Cheerios.Types.
 
 Require Import VerdiCheerios.SerializedMsgParams.
 Require Import VerdiCheerios.SerializedMsgParamsCorrect.
 
 Require Import LockServ.
 
-Definition Msg_serialize (m : Msg) : Serializer.t :=
+Module IOStreamBasics := BasicSerializers IOStream ByteListReader IOStreamSerializer.
+Import IOStreamBasics.
+Import IOStreamSerializer.
+
+Definition Msg_serialize (m : Msg) : IOStream.t :=
 match m with
-| Lock i => Serializer.append (serialize x00) (serialize i)
+| Lock i => IOStream.append (fun _ => serialize x00)
+                            (fun _ => serialize i)
 | Unlock => serialize x01
-| Locked i => Serializer.append (serialize x02) (serialize i)
+| Locked i => IOStream.append (fun _ => serialize x02)
+                              (fun _ => serialize i)
 end.
 
-Definition Msg_deserialize : Deserializer.t Msg :=
+Definition Msg_deserialize : ByteListReader.t Msg :=
 tag <- deserialize ;;
 match tag with
 | x00 => Lock <$> deserialize
-| x01 => Deserializer.ret Unlock
+| x01 => ByteListReader.ret Unlock
 | x02 => Locked <$> deserialize
-| _ => Deserializer.error
+| _ => ByteListReader.error
 end.
 
 Lemma Msg_serialize_deserialize_id :
