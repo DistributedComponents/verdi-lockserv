@@ -1,9 +1,8 @@
 Require Import Verdi.Verdi.
 
-
 Require Import Cheerios.BasicSerializers.
 Require Import Cheerios.Core.
-Require Import Cheerios.IOStream.
+Require Import Cheerios.DeserializerMonad.
 Require Import Cheerios.Tactics.
 Require Import Cheerios.Types.
 
@@ -12,16 +11,14 @@ Require Import VerdiCheerios.SerializedMsgParamsCorrect.
 
 Require Import LockServ.
 
-Module IOStreamBasics := BasicSerializers IOStream ByteListReader IOStreamSerializer.
-Import IOStreamBasics.
-Import IOStreamSerializer.
+Import DeserializerNotations.
 
-Definition Msg_serialize (m : Msg) : IOStream.t :=
+Definition Msg_serialize (m : Msg) : IOStreamWriter.t :=
 match m with
-| Lock i => IOStream.append (fun _ => serialize x00)
+| Lock i => IOStreamWriter.append (fun _ => serialize x00)
                             (fun _ => serialize i)
 | Unlock => serialize x01
-| Locked i => IOStream.append (fun _ => serialize x02)
+| Locked i => IOStreamWriter.append (fun _ => serialize x02)
                               (fun _ => serialize i)
 end.
 
