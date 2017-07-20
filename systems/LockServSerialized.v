@@ -1,11 +1,6 @@
 Require Import Verdi.Verdi.
 
-Require Import Cheerios.BasicSerializers.
-Require Import Cheerios.Core.
-Require Import Cheerios.DeserializerMonad.
-Require Import Cheerios.Tactics.
-Require Import Cheerios.Types.
-
+Require Import Cheerios.Cheerios.
 Require Import VerdiCheerios.SerializedMsgParams.
 Require Import VerdiCheerios.SerializedMsgParamsCorrect.
 

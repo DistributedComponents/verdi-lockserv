@@ -1,8 +1,6 @@
 Require Import Verdi.Verdi.
 
-Require Import Cheerios.Core.
-Require Import Cheerios.Types.
-Require Import Cheerios.BasicSerializers.
+Require Import Cheerios.Cheerios.
 
 Require Import LockServSerialized.
 
