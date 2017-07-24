@@ -40,7 +40,7 @@ The recommended way to install the OCaml and Coq dependencies of Verdi LockServ 
 ```
 opam repo add coq-released https://coq.inria.fr/opam/released
 opam repo add distributedcomponents-dev http://opam-dev.distributedcomponents.net
-opam install verdi cheerios StructTact verdi-runtime cheerios-runtime ocamlbuild ocamlfind
+opam install verdi StructTact cheerios verdi-cheerios verdi-runtime cheerios-runtime ocamlbuild ocamlfind
 ```
 
 Then, run `./configure` in the root directory.  This will check for the appropriate version of Coq and ensure all necessary dependencies can be located.
