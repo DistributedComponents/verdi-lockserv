@@ -7,15 +7,15 @@ Require Import Verdi.SeqNumCorrect.
 Section LockServSeqNum.
   Variable num_Clients : nat.
 
-  Definition transformed_base_params :=
+  Instance transformed_base_params : BaseParams :=
     @SeqNum.base_params (LockServ_BaseParams num_Clients) (LockServ_MultiParams num_Clients).
 
-  Definition transformed_multi_params :=
+  Instance transformed_multi_params : MultiParams _ :=
     @SeqNum.multi_params (LockServ_BaseParams num_Clients) (LockServ_MultiParams num_Clients).
 
   Theorem transformed_correctness :
     forall net tr,
-      step_dup_star (params := transformed_multi_params) step_async_init net tr ->
+      step_dup_star step_async_init net tr ->
       @mutual_exclusion num_Clients (nwState (revertNetwork net)).
   Proof using.
     intros.

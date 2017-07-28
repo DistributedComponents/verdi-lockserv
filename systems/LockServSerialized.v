@@ -47,10 +47,10 @@ Section Serialized.
   Definition orig_base_params := LockServ_BaseParams num_Clients.
   Definition orig_multi_params := LockServ_MultiParams num_Clients.
 
-  Definition transformed_base_params :=
+  Instance transformed_base_params : BaseParams :=
     @serialized_base_params orig_base_params.
 
-  Definition transformed_multi_params :=
+  Instance transformed_multi_params : MultiParams _ :=
     @serialized_multi_params orig_base_params orig_multi_params Msg_Serializer.
   
   Theorem transformed_correctness :
