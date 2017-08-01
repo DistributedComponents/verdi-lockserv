@@ -7,6 +7,6 @@ Require Import ExtrOcamlNatInt.
 
 Require Import Verdi.ExtrOcamlBasicExt.
 Require Import Verdi.ExtrOcamlList.
-Require Import Verdi.ExtrOcamlFin.
+Require Import Verdi.ExtrOcamlFinInt.
 
 Extraction "extraction/lockserv-seqnum/ocaml/LockServSeqNum.ml" seq transformed_base_params transformed_multi_params.

@@ -10,12 +10,10 @@ Require Import ExtrOcamlString.
 
 Require Import Verdi.ExtrOcamlBasicExt.
 Require Import Verdi.ExtrOcamlList.
-Require Import Verdi.ExtrOcamlFin.
+Require Import Verdi.ExtrOcamlFinInt.
 
-Require Import Cheerios.ExtrCheerios.
-
-Extract Inlined Constant nat_serialize => "(fun i -> Serializer_primitives.putInt (Int32.of_int i))".
-
-Extract Inlined Constant nat_deserialize => "(Serializer_primitives.map Int32.to_int Serializer_primitives.getInt)".
+Require Import Cheerios.ExtrOcamlCheerios.
+Require Import Cheerios.ExtrOcamlCheeriosNatInt.
+Require Import Cheerios.ExtrOcamlCheeriosFinInt.
 
 Extraction "extraction/lockserv-serialized/ocaml/LockServSerialized.ml" seq transformed_base_params transformed_multi_params.
