@@ -10,11 +10,9 @@ Import DeserializerNotations.
 
 Definition Msg_serialize (m : Msg) : IOStreamWriter.t :=
 match m with
-| Lock i => IOStreamWriter.append (fun _ => serialize x00)
-                            (fun _ => serialize i)
+| Lock i => serialize x00 +$+ serialize i
 | Unlock => serialize x01
-| Locked i => IOStreamWriter.append (fun _ => serialize x02)
-                              (fun _ => serialize i)
+| Locked i => serialize x02 +$+ serialize i
 end.
 
 Definition Msg_deserialize : ByteListReader.t Msg :=
