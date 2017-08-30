@@ -28,10 +28,10 @@ State
 
 ```ocaml
 State Server := list Name (* head agent holds lock, tail agents wait *)
-State (Client _) := bool (* true iff client holds lock *)
+State (Agent _) := bool (* true iff client holds lock *)
 
 InitState Server := []
-InitState (Client _) := false
+InitState (Agent _) := false
 ```
 
 API Handlers
