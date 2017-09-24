@@ -1,8 +1,8 @@
 Require Import Verdi.Verdi.
 
 Require Import Cheerios.Cheerios.
-Require Import VerdiCheerios.SerializedMsgParams.
-Require Import VerdiCheerios.SerializedMsgParamsCorrect.
+Require Import Verdi.SerializedMsgParams.
+Require Import Verdi.SerializedMsgParamsCorrect.
 
 Require Import LockServ.
 
@@ -30,7 +30,8 @@ Proof.
   intros.
   unfold Msg_serialize, Msg_deserialize.
   destruct a;
-   repeat (cheerios_crush; simpl).
+   repeat (cheerios_crush; simpl);
+   rewrite nat_serialize_deserialize_id; reflexivity.
 Qed.
 
 Instance Msg_Serializer : Serializer Msg :=

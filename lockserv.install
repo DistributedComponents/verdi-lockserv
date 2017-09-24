@@ -1,1 +1,0 @@
-bin: ["extraction/lockserv/_build/ocaml/LockServMain.native" {"lockserv"}]

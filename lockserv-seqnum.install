@@ -1,1 +1,0 @@
-bin: ["extraction/lockserv-seqnum/_build/ocaml/LockServSeqNumMain.native" {"lockserv-seqnum"}]

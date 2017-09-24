@@ -14,9 +14,8 @@ Definitions and proofs:
 - [`Verdi`](https://github.com/uwplse/verdi)
 - [`StructTact`](https://github.com/uwplse/StructTact)
 - [`Cheerios`](https://github.com/uwplse/cheerios)
-- [`VerdiCheerios`](https://github.com/DistributedComponents/verdi-cheerios)
 
-Executable program:
+Executable programs:
 
 - [`OCaml 4.02.3`](https://ocaml.org) (or later)
 - [`OCamlbuild`](https://github.com/ocaml/ocamlbuild)
@@ -40,12 +39,12 @@ The recommended way to install the OCaml and Coq dependencies of Verdi LockServ 
 ```
 opam repo add coq-released https://coq.inria.fr/opam/released
 opam repo add distributedcomponents-dev http://opam-dev.distributedcomponents.net
-opam install verdi StructTact cheerios verdi-cheerios verdi-runtime cheerios-runtime ocamlbuild ocamlfind
+opam install verdi StructTact cheerios verdi-runtime cheerios-runtime ocamlbuild ocamlfind
 ```
 
 Then, run `./configure` in the root directory.  This will check for the appropriate version of Coq and ensure all necessary dependencies can be located.
 
-By default, the script assumes that `Verdi` and `StructTact` are installed in Coq's `user-contrib` directory, but this can be overridden by setting the `Verdi_PATH` and `StructTact_PATH` environment variables.
+By default, the script assumes that `Verdi`, `StructTact`, and `Cheerios` are installed in Coq's `user-contrib` directory, but this can be overridden by setting the `Verdi_PATH`, `StructTact_PATH`, and `Cheerios_PATH` environment variables.
 
 Finally, run `make` in the root directory. This will compile the lock server definitions, check the proofs of mutual exclusion, and extract OCaml event handler code.
 

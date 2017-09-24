@@ -3,9 +3,9 @@
 ## Configures and calls coqproject.sh (https://github.com/dwoos/coqproject)
 
 ## Configuration options for coqproject.sh
-DEPS=(Verdi StructTact Cheerios VerdiCheerios)
+DEPS=(Verdi StructTact Cheerios)
 DIRS=(systems extraction/lockserv/coq extraction/lockserv-seqnum/coq extraction/lockserv-serialized/coq)
-CANARIES=("Verdi.Verdi" "Build Verdi before building Verdi LockServ" "StructTact.StructTactics" "Build StructTact before building Verdi LockServ")
+CANARIES=("StructTact.StructTactics" "Build StructTact before building Verdi LockServ" "Verdi.Verdi" "Build Verdi before building Verdi LockServ" "Cheerios.Cheerios" "Build Cheerios before building Verdi LockServ")
 Verdi_DIRS=(core lib systems extraction)
 Cheerios_DIRS=(core extraction)
 source script/coqproject.sh
