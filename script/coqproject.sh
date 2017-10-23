@@ -69,7 +69,7 @@ for dir in ${DIRS[@]}; do
     namespace_var=${namespace_var//\//_}
     namespace_var=${namespace_var//-/_}
     namespace_var=${namespace_var//./_}
-    namespace=${!namespace_var:="\"\""}
+    namespace=${!namespace_var:="''"}
     LINE="-Q $dir $namespace"
     echo $LINE >> $COQPROJECT_TMP
 done

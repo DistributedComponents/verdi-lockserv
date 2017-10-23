@@ -1,7 +1,7 @@
 include Makefile.detect-coq-version
 
-ifeq (,$(filter $(COQVERSION),8.5 8.6 8.7 trunk))
-$(error "Verdi Lockserv is only compatible with Coq version 8.5 or later")
+ifeq (,$(filter $(COQVERSION),8.6 8.7 trunk))
+$(error "Verdi Lockserv is only compatible with Coq version 8.6.1 or later")
 endif
 
 COQPROJECT_EXISTS := $(wildcard _CoqProject)
@@ -25,7 +25,7 @@ LOCKSERV_SEQNUM_MLFILES = extraction/lockserv-seqnum/ocaml/LockServSeqNum.ml ext
 LOCKSERV_SER_MLFILES = extraction/lockserv-serialized/ocaml/LockServSerialized.ml extraction/lockserv-serialized/ocaml/LockServSerialized.mli
 
 Makefile.coq: _CoqProject
-	coq_makefile -f _CoqProject -o Makefile.coq -no-install \
+	coq_makefile -f _CoqProject -o Makefile.coq -install none \
           -extra '$(LOCKSERV_MLFILES)' \
 	    'extraction/lockserv/coq/ExtractLockServ.v systems/LockServ.vo' \
 	    '$$(COQC) $$(COQDEBUG) $$(COQFLAGS) extraction/lockserv/coq/ExtractLockServ.v' \
@@ -34,9 +34,7 @@ Makefile.coq: _CoqProject
 	    '$$(COQC) $$(COQDEBUG) $$(COQFLAGS) extraction/lockserv-seqnum/coq/ExtractLockServSeqNum.v' \
           -extra '$(LOCKSERV_SER_MLFILES)' \
 	    'extraction/lockserv-serialized/coq/ExtractLockServSerialized.v systems/LockServSerialized.vo' \
-	    '$$(COQC) $$(COQDEBUG) $$(COQFLAGS) extraction/lockserv-serialized/coq/ExtractLockServSerialized.v' \
-          -extra-phony 'distclean' 'clean' \
-	    'rm -f $$(join $$(dir $$(VFILES)),$$(addprefix .,$$(notdir $$(patsubst %.v,%.aux,$$(VFILES)))))'
+	    '$$(COQC) $$(COQDEBUG) $$(COQFLAGS) extraction/lockserv-serialized/coq/ExtractLockServSerialized.v'
 
 $(LOCKSERV_MLFILES) $(LOCKSERV_SEQNUM_MLFILES) $(LOCKSERV_SER_MLFILES): Makefile.coq
 	$(MAKE) -f Makefile.coq $@
@@ -55,7 +53,7 @@ lockserv-serialized:
 
 clean:
 	if [ -f Makefile.coq ]; then \
-	  $(MAKE) -f Makefile.coq distclean; fi
+	  $(MAKE) -f Makefile.coq cleanall; fi
 	rm -f Makefile.coq
 	$(MAKE) -C extraction/lockserv clean
 	$(MAKE) -C extraction/lockserv-seqnum clean

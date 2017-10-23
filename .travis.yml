@@ -9,8 +9,8 @@ addons:
       - aspcud
 env:
   matrix:
-    - MODE=build COQ_VERSION=8.5.3
     - MODE=build COQ_VERSION=8.6.1
+    - MODE=build COQ_VERSION=8.7.0
     - MODE=lockserv COQ_VERSION=8.6.1 OPAMBUILDTEST=1
     - MODE=lockserv-seqnum COQ_VERSION=8.6.1
     - MODE=lockserv-serialized COQ_VERSION=8.6.1
